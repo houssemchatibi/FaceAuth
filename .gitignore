@@ -17,7 +17,7 @@ pip-selfcheck.json
 .env
 
 # Database
-friends.db
+config.py
 
 # Compiled Python files
 *.pyc
