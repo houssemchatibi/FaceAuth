@@ -55,66 +55,43 @@ def register_user():
         return jsonify({"error": str(e)}), 500
 
         
-# @app.route('/api/register', methods=['GET'])
-# def test_register():
-#     return jsonify({"message": "GET request to /api/register is working"})
+@app.route('/api/login', methods=['POST'])
+def login_user():
+    data = request.get_json()
+    username = data.get('username')
+    face_image_b64 = data.get('faceImage')
+    
+    if not username or not face_image_b64:
+        return jsonify({"error": "Missing username or face image"}), 400
 
+    user = User.query.filter_by(username=username).first()
+    if user:
+        try:
+            # Décode l'image de la requête
+            if face_image_b64.startswith("data:image/jpeg;base64,"):
+                face_image = base64.b64decode(face_image_b64.split(',')[1])
+            else:
+                return jsonify({"error": "Invalid image format"}), 400
+        except (IndexError, ValueError):
+            return jsonify({"error": "Invalid base64 string"}), 400
 
-# @app.route('/api/test_face', methods=['GET'])
-# def test_face():
-#     try:
-#         # Load and convert the image to RGB
-#         image_path = 'pngtree.png'  # Replace with your image path
-#         image = Image.open(image_path)
+        # Convertir l'image en tableau NumPy
+        image = Image.open(BytesIO(face_image)).convert("RGB")
+        image_np = np.array(image)
         
-#         # Check and convert the image mode
-#         print(f"Original image mode: {image.mode}")  # Debugging
-        
-#         if image.mode != 'RGB':
-#             image = image.convert('RGB')  # Force convert to RGB
-#             print(f"Converted image mode: {image.mode}")  # Debugging
-        
-#         # Resize to a more standard size for testing (optional)
-#         image = image.resize((640, 480))  # Resize to a standard size for testing
-#         print(f"Resized image size: {image.size}")  # Debugging
-        
-#         # Convert the image to a NumPy array
-#         image_np = np.array(image)
-#         print("Image array shape:", image_np.shape)  # Should be (height, width, 3)
-#         print("Image array dtype:", image_np.dtype)  # Should be uint8
-        
-#         # Ensure the image array is of type uint8
-#         if image_np.dtype != np.uint8:
-#             image_np = image_np.astype(np.uint8)
-        
-#         # Re-save the image to ensure proper format
-#         image.save('resaved_image.jpg', format='JPEG')  # Save as a clean RGB JPEG
-#         image = Image.open('resaved_image.jpg')  # Re-load the image
-#         print(f"Resaved image mode: {image.mode}")  # Ensure it's RGB
-        
-#         # Convert the re-saved image to a NumPy array
-#         image_np = np.array(image)
-        
-#         # Detect face locations first (before encoding)
-#         face_locations = face_recognition.face_locations(image_np)
-#         print(f"Face locations: {face_locations}")
-        
-#         if len(face_locations) == 0:
-#             return jsonify({"error": "No face detected in the image"}), 400
-        
-#         # Now, extract face encodings
-#         face_encodings = face_recognition.face_encodings(image_np, known_face_locations=face_locations)
-#         print("Face encodings found:", len(face_encodings))
-        
-#         if len(face_encodings) == 0:
-#             return jsonify({"error": "No face encodings found"}), 400
-        
-#         # Return the first face encoding as a list
-#         face_encoding = face_encodings[0].tolist()  # Convert to list for JSON serialization
-#         return jsonify({"face_encoding": face_encoding}), 200
+        # Extraire l'encodage du visage à partir de l'image fournie
+        face_encodings = face_recognition.face_encodings(image_np)
+        if len(face_encodings) == 0:
+            return jsonify({"error": "No face detected"}), 400
+        face_encoding_user = face_encodings[0]
 
-#     except Exception as e:
-#         import traceback
-#         traceback.print_exc()
-#         return jsonify({"error": str(e)}), 500
-
+        # Comparer l'encodage de l'utilisateur stocké avec l'encodage du visage fourni
+        stored_encoding = np.frombuffer(user.face_encoding)  # Assure-toi que `user.face_encoding` est au format correct
+        matches = face_recognition.compare_faces([stored_encoding], face_encoding_user)
+        
+        if matches[0]:
+            return jsonify({"message": f"Welcome, {user.username}!"}), 200
+        return jsonify({"error": "Face not recognized"}), 401
+    
+    return jsonify({"error": "Username does not exist"}), 400
+    

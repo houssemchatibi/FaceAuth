@@ -13,7 +13,7 @@ CORS(app)
 db.init_app(app)
 migrate = Migrate(app, db)
 
-
+print("hiiii")
 import routes
 
 if __name__ == '__main__':
