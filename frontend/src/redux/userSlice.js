@@ -39,7 +39,10 @@ export const userSlice = createSlice({
   name: 'user',
   initialState,
   reducers: {
-    // standard reducer logic, with auto-generated action types per reducer
+    logout: (state) => {
+      state.User = []
+      localStorage.clear()
+    }
   },
   extraReducers: (builder) => {
     // Add reducers for additional action types here, and handle loading state as needed
@@ -51,4 +54,5 @@ export const userSlice = createSlice({
   },
 })
 
+export const { logout } = userSlice.actions
 export default userSlice.reducer;

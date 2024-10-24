@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Webcam from 'react-webcam';
-import { fetchUserConnect } from '../redux/userSlice';
+import { fetchUserConnect, logout } from '../redux/userSlice';
 //import Signup from './Signup'
 
 const Login = () => {
@@ -51,9 +51,6 @@ console.log("user",user)
     }
   }
  
-//  const handleLogOut = () =>{
-
-//  }
 
   return (
     <>
@@ -68,7 +65,7 @@ console.log("user",user)
       <input name="username" required value={inputs.username} onChange={(e) => { setInputs({ ...inputs, username: e.target.value }) }} />
       <Webcam ref={webcamRef} screenshotFormat="image/jpeg" />
       <button onClick={handleSubmit}>Log in</button>
-      {/* <button onClick={handleLogOut}>Log out</button> */}
+      <button onClick={() => dispatch(logout())}>Log out</button>
     </>
   )
 }
