@@ -1,10 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import Webcam from 'react-webcam';
+import { fetchUserConnect } from '../redux/userSlice';
 //import Signup from './Signup'
 
 const Login = () => {
 
-  
+  const dispatch = useDispatch()
+  const user = useSelector((store) => store?.user?.User)
+console.log("user",user)
   const webcamRef = useRef(null);
   const [inputs, setInputs] = useState({
     username: "",
@@ -33,20 +37,8 @@ const Login = () => {
       if (!updatedInputs.faceImage) {
         throw new Error("Missing face image");
       }
-  
-      // Envoi de la requête avec les inputs mis à jour
-      const res = await fetch("http://127.0.0.1:5000/api/login", {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updatedInputs),
-      });
-  
-      const data = await res.json();
-    if (!res.ok) {
-      throw new Error(data.error);
-    }
+
+    dispatch(fetchUserConnect(updatedInputs))
 
       // Remise à zéro des inputs après la connexion réussie
       setInputs({
@@ -59,13 +51,24 @@ const Login = () => {
     }
   }
  
- 
+//  const handleLogOut = () =>{
+
+//  }
+
   return (
     <>
       <p>Username</p>
+      <div>
+      {user && user.length > 0 ? (
+        <p>Welcome, {user[0].username}!</p> // Replace with relevant user data
+      ) : (
+        <p>Please log in</p>
+      )}
+    </div>
       <input name="username" required value={inputs.username} onChange={(e) => { setInputs({ ...inputs, username: e.target.value }) }} />
       <Webcam ref={webcamRef} screenshotFormat="image/jpeg" />
       <button onClick={handleSubmit}>Log in</button>
+      {/* <button onClick={handleLogOut}>Log out</button> */}
     </>
   )
 }

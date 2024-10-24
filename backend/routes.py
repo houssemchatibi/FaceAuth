@@ -90,7 +90,10 @@ def login_user():
         matches = face_recognition.compare_faces([stored_encoding], face_encoding_user)
         
         if matches[0]:
-            return jsonify({"message": f"Welcome, {user.username}!"}), 200
+            user_info = {
+                "username": user.username,
+            }
+            return jsonify(user_info), 200
         return jsonify({"error": "Face not recognized"}), 401
     
     return jsonify({"error": "Username does not exist"}), 400
