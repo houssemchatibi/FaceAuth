@@ -32,6 +32,7 @@ export const fetchUserConnect= createAsyncThunk(
 const initialState = {
   User: JSON.parse(localStorage.getItem("user")) || [],
   loading: 'idle',
+  error: null,
 } 
 
 // Then, handle actions in your reducers:
@@ -49,8 +50,12 @@ export const userSlice = createSlice({
     builder.addCase(fetchUserConnect.fulfilled, (state, action) => {
       // Add user to the state array
       state.User.push(action.payload)
+      state.error = null;
       localStorage.setItem('user', JSON.stringify(state.User));
     })
+    .addCase(fetchUserConnect.rejected, (state, action) => {
+      state.error = action.payload; // Store the error message from the backend
+    });
   },
 })
 
